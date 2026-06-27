@@ -67,9 +67,9 @@ local Library do
         FadeSpeed = 0.2,
 
         Folders = {
-            Directory = "esdeeeeee",
-            Configs = "esdeeeeee/Configs",
-            Assets = "esdeeeeee/Assets",
+            Directory = "Aetherion",
+            Configs = "Aetherion/Configs",
+            Assets = "Aetherion/Assets",
         },
 
         -- Ignore below
