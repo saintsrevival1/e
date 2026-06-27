@@ -14,13 +14,12 @@ local SliderTweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDi
 
 local Library = {}
 Library.Tabs = {}
+Library.Sections = {}
 Library.OpenDropdowns = 0
 Library.ConfigValues = {}
-Library.ConfigFolder = "FusionHub/Configs"
 
 local HttpService = game:GetService("HttpService")
-
-local CurrentVisibleTab
+local CurrentVisibleTab = nil
 
 function Library:RegisterConfigFlag(Flag, Type, Default, SetCallback, GetCallback)
 	if not Flag or Flag == "" then return end
@@ -48,14 +47,6 @@ function Library:GetConfigValue(Flag)
 		return Entry.Get()
 	end
 	return nil
-end
-
-function Library:GetConfigDump()
-	local Dump = {}
-	for Flag, Entry in Library.ConfigValues do
-		Dump[Flag] = Entry.Get and Entry.Get() or Entry.Value
-	end
-	return Dump
 end
 
 -- // Functions
@@ -95,7 +86,7 @@ function Library:CreateWindow(WindowOptions)
 	Background.AnchorPoint = Vector2.new(0.5, 0.5)
 	Background.BackgroundColor3 = Color3.fromRGB(10, 11, 12)
 	Background.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Background.Size = UDim2.new(0, 712, 0, 550)
+	Background.Size = UDim2.new(0, 800, 0, 550)
 	Background.BorderSizePixel = 0
 	Background.ClipsDescendants = true
 	Background.Name = "Background"
@@ -114,8 +105,8 @@ function Library:CreateWindow(WindowOptions)
 	Main.AnchorPoint = Vector2.new(0, 0.5)
 	Main.BackgroundColor3 = Color3.fromRGB(11, 12, 14)
 	Main.BorderSizePixel = 0
-	Main.Position = UDim2.new(0, 60, 0.5, 0)
-	Main.Size = UDim2.new(0, 642, 0, 530)
+	Main.Position = UDim2.new(0, 0, 0.5, 0)
+	Main.Size = UDim2.new(1, 0, 1, 0)
 	Main.Name = "Main"
 	Main.Parent = Background
 
@@ -128,45 +119,20 @@ function Library:CreateWindow(WindowOptions)
 	MainUIStroke.Thickness = 1.5
 	MainUIStroke.Parent = Main
 
-	local LeftBar = Instance.new("Frame")
-	LeftBar.BackgroundTransparency = 1
-	LeftBar.Size = UDim2.new(0, 60, 1, 0)
-	LeftBar.Name = "LeftBar"
-	LeftBar.Parent = Background
-
-	local Holder = Instance.new("Frame")
-	Holder.BackgroundTransparency = 1
-	Holder.Position = UDim2.new(0, 0, 0, 42)
-	Holder.Size = UDim2.new(1, 0, 0, 488)
-	Holder.Name = "Holder"
-	Holder.ClipsDescendants = true
-	Holder.Parent = Main
-
 	local TopBar = Instance.new("Frame")
 	TopBar.BackgroundTransparency = 1
 	TopBar.Size = UDim2.new(1, 0, 0, 42)
 	TopBar.Name = "TopBar"
 	TopBar.Parent = Main
 
-	local Line = Instance.new("Frame")
-	Line.BackgroundTransparency = 1
-	Line.Position = UDim2.new(0, 0, 0.5, 0)
-	Line.Size = UDim2.new(1, 0, 0.5, 0)
-	Line.Name = "Line"
-	Line.Parent = TopBar
-
-	local LineFix = Instance.new("Frame")
-	LineFix.AnchorPoint = Vector2.new(0, 0.5)
-	LineFix.BackgroundColor3 = Color3.fromRGB(11, 12, 14)
-	LineFix.BorderSizePixel = 0
-	LineFix.Size = UDim2.new(1, 0, 1, 0)
-	LineFix.Name = "Fix"
-	LineFix.Parent = Line
-
-	local LineUIStroke = Instance.new("UIStroke")
-	LineUIStroke.Color = Color3.fromRGB(19, 21, 21)
-	LineUIStroke.Thickness = 1.5
-	LineUIStroke.Parent = Line
+	local TopBarLine = Instance.new("Frame")
+	TopBarLine.BackgroundColor3 = Color3.fromRGB(19, 21, 21)
+	TopBarLine.BorderSizePixel = 0
+	TopBarLine.Position = UDim2.new(0, 0, 1, -1)
+	TopBarLine.Size = UDim2.new(1, 0, 0, 1)
+	TopBarLine.ZIndex = 2
+	TopBarLine.Name = "Line"
+	TopBarLine.Parent = TopBar
 
 	local DragButton = Instance.new("ImageButton")
 	DragButton.BackgroundTransparency = 1
@@ -184,7 +150,6 @@ function Library:CreateWindow(WindowOptions)
 	local DragStart = nil
 	local StartPosition = nil
 	local GoalPosition = nil
-
 	local DragSpeed = 18
 
 	local function GetViewportSize()
@@ -216,7 +181,6 @@ function Library:CreateWindow(WindowOptions)
 		if not Dragging or not StartPosition then return end
 
 		local Delta = InputPosition - DragStart
-
 		local ViewportSize = GetViewportSize()
 		local AnchorOffsetX = StartPosition.X.Scale * ViewportSize.X + StartPosition.X.Offset
 		local AnchorOffsetY = StartPosition.Y.Scale * ViewportSize.Y + StartPosition.Y.Offset
@@ -283,160 +247,225 @@ function Library:CreateWindow(WindowOptions)
 		GoalPosition = UDim2.new(0, FinalX, 0, FinalY)
 	end)
 
-	local Arrow = Instance.new("ImageLabel")
-	Arrow.BackgroundTransparency = 1
-	Arrow.Position = UDim2.new(0, 16, 0, 11)
-	Arrow.Size = UDim2.new(0, 20, 0, 20)
-	Arrow.Image = "rbxassetid://8445471499"
-	Arrow.ImageColor3 = Color3.fromRGB(205, 180, 219)
-	Arrow.ImageRectOffset = Vector2.new(104, 504)
-	Arrow.ImageRectSize = Vector2.new(96, 96)
-	Arrow.Name = "Arrow"
-	Arrow.Parent = TopBar
-
-	local Path = Instance.new("TextLabel")
-	Path.AnchorPoint = Vector2.new(0, 0.5)
-	Path.BackgroundTransparency = 1
-	Path.Position = UDim2.new(0, 45, 0.5, 0)
-	Path.Size = UDim2.new(1, 0, 0, 17)
-	Path.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-	Path.Text = WindowOptions.Title .. "	"
-	Path.TextScaled = true
-	Path.Name = "Path"
-	Path.TextDirection = Enum.TextDirection.LeftToRight
-	Path.RichText = true
-	Path.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Path.TextXAlignment = Enum.TextXAlignment.Left
-	Path.Parent = TopBar
-
-	local LeftBarLine = Instance.new("Frame")
-	LeftBarLine.AnchorPoint = Vector2.new(0.5, 0)
-	LeftBarLine.BackgroundTransparency = 1
-	LeftBarLine.Position = UDim2.new(0.5, 0, 0, 30)
-	LeftBarLine.Size = UDim2.new(0, 30, 0, 30)
-	LeftBarLine.Name = "Line"
-	LeftBarLine.Parent = LeftBar
-
-	local LeftBarLineUIStroke = Instance.new("UIStroke")
-	LeftBarLineUIStroke.Color = Color3.fromRGB(19, 21, 21)
-	LeftBarLineUIStroke.Thickness = 1.5
-	LeftBarLineUIStroke.Parent = LeftBarLine
-
-	local LeftBarLineFix = Instance.new("Frame")
-	LeftBarLineFix.AnchorPoint = Vector2.new(0.5, 0)
-	LeftBarLineFix.BackgroundColor3 = Color3.fromRGB(10, 11, 12)
-	LeftBarLineFix.Position = UDim2.new(0.5, 0, 0, -2)
-	LeftBarLineFix.Size = UDim2.new(0, 40, 0, 32)
-	LeftBarLineFix.Name = "Fix"
-	LeftBarLineFix.BorderSizePixel = 0
-	LeftBarLineFix.Parent = LeftBarLine
-
 	local Logo = Instance.new("ImageLabel")
 	Logo.BackgroundTransparency = 1
-	Logo.Position = UDim2.new(0, 17, 0, 17)
-	Logo.Size = UDim2.new(0, 26, 0, 26)
+	Logo.Position = UDim2.new(0, 12, 0, 11)
+	Logo.Size = UDim2.new(0, 20, 0, 20)
 	Logo.ZIndex = 3
 	Logo.Image = WindowOptions.Icon
 	Logo.ImageRectOffset = WindowOptions.ImageRectOffset or Vector2.new(0, 0)
 	Logo.ImageRectSize = WindowOptions.ImageRectSize or Vector2.new(0, 0)
 	Logo.ScaleType = Enum.ScaleType.Fit
 	Logo.Name = "Logo"
-	Logo.Parent = LeftBar
+	Logo.Parent = TopBar
 
-	local TabCount = 0
+	local TitleLabel = Instance.new("TextLabel")
+	TitleLabel.AnchorPoint = Vector2.new(0, 0.5)
+	TitleLabel.BackgroundTransparency = 1
+	TitleLabel.Position = UDim2.new(0, 40, 0.5, 0)
+	TitleLabel.Size = UDim2.new(0, 300, 0, 20)
+	TitleLabel.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+	TitleLabel.Text = WindowOptions.Title
+	TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TitleLabel.TextScaled = true
+	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TitleLabel.ZIndex = 3
+	TitleLabel.Name = "Title"
+	TitleLabel.Parent = TopBar
+
+	local LeftSidebar = Instance.new("ScrollingFrame")
+	LeftSidebar.BackgroundColor3 = Color3.fromRGB(13, 14, 16)
+	LeftSidebar.BorderSizePixel = 0
+	LeftSidebar.Position = UDim2.new(0, 0, 0, 42)
+	LeftSidebar.Size = UDim2.new(0, 180, 1, -42)
+	LeftSidebar.ZIndex = 2
+	LeftSidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	LeftSidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
+	LeftSidebar.ScrollBarThickness = 4
+	LeftSidebar.ScrollBarImageColor3 = Color3.fromRGB(84, 97, 119)
+	LeftSidebar.Name = "LeftSidebar"
+	LeftSidebar.Parent = Main
+
+	local SidebarUIListLayout = Instance.new("UIListLayout")
+	SidebarUIListLayout.Padding = UDim.new(0, 8)
+	SidebarUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	SidebarUIListLayout.Parent = LeftSidebar
+
+	local SidebarPadding = Instance.new("UIPadding")
+	SidebarPadding.PaddingTop = UDim.new(0, 10)
+	SidebarPadding.PaddingBottom = UDim.new(0, 10)
+	SidebarPadding.PaddingLeft = UDim.new(0, 10)
+	SidebarPadding.PaddingRight = UDim.new(0, 10)
+	SidebarPadding.Parent = LeftSidebar
+
+	local ContentArea = Instance.new("ScrollingFrame")
+	ContentArea.BackgroundTransparency = 1
+	ContentArea.BorderSizePixel = 0
+	ContentArea.Position = UDim2.new(0, 180, 0, 42)
+	ContentArea.Size = UDim2.new(1, -180, 1, -42)
+	ContentArea.ZIndex = 2
+	ContentArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	ContentArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ContentArea.ScrollBarThickness = 4
+	ContentArea.ScrollBarImageColor3 = Color3.fromRGB(84, 97, 119)
+	ContentArea.Name = "ContentArea"
+	ContentArea.Parent = Main
+
+	local ContentUIListLayout = Instance.new("UIListLayout")
+	ContentUIListLayout.Padding = UDim.new(0, 20)
+	ContentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	ContentUIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	ContentUIListLayout.Parent = ContentArea
+
+	local ContentPadding = Instance.new("UIPadding")
+	ContentPadding.PaddingTop = UDim.new(0, 15)
+	ContentPadding.PaddingBottom = UDim.new(0, 15)
+	ContentPadding.PaddingLeft = UDim.new(0, 15)
+	ContentPadding.PaddingRight = UDim.new(0, 15)
+	ContentPadding.Parent = ContentArea
+
+	local SectionCount = 0
 	local Window = {}
 
 	function Window:AddTab(TabOptions)
-		TabCount += 1
-		table.insert(Library.Tabs, TabOptions.Name)
+		local SectionName = TabOptions.Section or "General"
+		
+		if not Library.Sections[SectionName] then
+			SectionCount += 1
+			Library.Sections[SectionName] = {
+				Name = SectionName,
+				Tabs = {},
+				Expanded = true,
+				Button = nil,
+				TabsHolder = nil
+			}
 
-		Path.Text ..= "<font color=\"#546177\">/	" .. TabOptions.Name .. "</font>	"
+			local SectionButton = Instance.new("TextButton")
+			SectionButton.BackgroundColor3 = Color3.fromRGB(13, 14, 16)
+			SectionButton.BorderSizePixel = 0
+			SectionButton.Size = UDim2.new(1, 0, 0, 28)
+			SectionButton.AutomaticSize = Enum.AutomaticSize.Y
+			SectionButton.ZIndex = 2
+			SectionButton.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+			SectionButton.Text = SectionName
+			SectionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+			SectionButton.TextScaled = true
+			SectionButton.LayoutOrder = SectionCount
+			SectionButton.Name = SectionName .. "Button"
+			SectionButton.Parent = LeftSidebar
 
-		local TabFrame = Instance.new("ScrollingFrame")
-		TabFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		TabFrame.BackgroundTransparency = 1
-		TabFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabFrame.Size = UDim2.new(1, -20, 1, -20)
-		TabFrame.ZIndex = 2
-		TabFrame.Name = TabOptions.Name .. "Tab"
-		TabFrame.Visible = false
-		TabFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		TabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-		TabFrame.ClipsDescendants = false
-		TabFrame.ScrollBarThickness = 0
-		TabFrame.Parent = Holder
+			local SectionButtonUICorner = Instance.new("UICorner")
+			SectionButtonUICorner.CornerRadius = UDim.new(0, 6)
+			SectionButtonUICorner.Parent = SectionButton
 
-		local OpenTabButton = Instance.new("ImageButton")
-		OpenTabButton.BackgroundTransparency = 1
-		OpenTabButton.Position = UDim2.new(0, 20, 0, 43 * TabCount + 34)
-		OpenTabButton.Size = UDim2.new(0, 20, 0, 20)
-		OpenTabButton.Image = TabOptions.Icon
-		OpenTabButton.ImageColor3 = Color3.fromRGB(84, 97, 119)
-		OpenTabButton.ImageRectOffset = TabOptions.ImageRectOffset or Vector2.new(0, 0)
-		OpenTabButton.ImageRectSize = TabOptions.ImageRectSize or Vector2.new(0, 0)
-		OpenTabButton.Name = TabOptions.Name .. "Button"
-		OpenTabButton.Parent = LeftBar
+			local SectionButtonUIStroke = Instance.new("UIStroke")
+			SectionButtonUIStroke.Color = Color3.fromRGB(84, 97, 119)
+			SectionButtonUIStroke.Thickness = 1
+			SectionButtonUIStroke.Parent = SectionButton
 
-		OpenTabButton.MouseButton1Click:Connect(function()
-			if CurrentVisibleTab == TabOptions.Name then return end
+			local TabsHolder = Instance.new("Frame")
+			TabsHolder.BackgroundTransparency = 1
+			TabsHolder.BorderSizePixel = 0
+			TabsHolder.Size = UDim2.new(1, 0, 0, 0)
+			TabsHolder.AutomaticSize = Enum.AutomaticSize.Y
+			TabsHolder.ZIndex = 2
+			TabsHolder.LayoutOrder = SectionCount + 1000
+			TabsHolder.Name = SectionName .. "TabsHolder"
+			TabsHolder.Parent = LeftSidebar
 
-			if CurrentVisibleTab then
-				TweenService:Create(LeftBar[CurrentVisibleTab .. "Button"], TweenInformation, {ImageColor3 = Color3.fromRGB(84, 97, 119)}):Play()
+			local TabsHolderUIListLayout = Instance.new("UIListLayout")
+			TabsHolderUIListLayout.Padding = UDim.new(0, 4)
+			TabsHolderUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			TabsHolderUIListLayout.Parent = TabsHolder
 
-				local OldTabFrame = Holder[CurrentVisibleTab .. "Tab"]
+			Library.Sections[SectionName].Button = SectionButton
+			Library.Sections[SectionName].TabsHolder = TabsHolder
 
-				local OutTween = TweenService:Create(OldTabFrame, TabTweenInfo, {
-					Position = UDim2.new(0.5, -24, 0.5, 0),
-				})
-				OutTween:Play()
+			SectionButton.MouseButton1Click:Connect(function()
+				local IsExpanded = Library.Sections[SectionName].Expanded
+				Library.Sections[SectionName].Expanded = not IsExpanded
 
-				OldTabFrame.Visible = true
-				task.delay(TabTweenInfo.Time, function()
-					if CurrentVisibleTab ~= TabOptions.Name then
-					end
-					OldTabFrame.Visible = false
-					OldTabFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-				end)
-			end
-
-			CurrentVisibleTab = TabOptions.Name
-
-			TweenService:Create(LeftBar[CurrentVisibleTab .. "Button"], TweenInformation, {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-			Path.Text = "Fusion Pro"
-
-			for _, TabName in Library.Tabs do
-				if TabName == CurrentVisibleTab then
-					Path.Text ..= "	/	" .. TabName
+				if not IsExpanded then
+					TweenService:Create(SectionButton, TweenInformation, {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+					TabsHolder.Visible = true
 				else
-					Path.Text ..= "	/	" .. "<font color=\"#546177\">" .. TabName .. "</font>"
+					TweenService:Create(SectionButton, TweenInformation, {TextColor3 = Color3.fromRGB(84, 97, 119)}):Play()
+					TabsHolder.Visible = false
+				end
+			end)
+		end
+
+		table.insert(Library.Sections[SectionName].Tabs, TabOptions.Name)
+
+		local TabButton = Instance.new("TextButton")
+		TabButton.BackgroundColor3 = Color3.fromRGB(20, 21, 25)
+		TabButton.BorderSizePixel = 0
+		TabButton.Size = UDim2.new(1, -8, 0, 26)
+		TabButton.ZIndex = 2
+		TabButton.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+		TabButton.Text = TabOptions.Name
+		TabButton.TextColor3 = Color3.fromRGB(84, 97, 119)
+		TabButton.TextScaled = true
+		TabButton.LayoutOrder = #Library.Sections[SectionName].Tabs
+		TabButton.Name = TabOptions.Name .. "TabButton"
+		TabButton.Parent = Library.Sections[SectionName].TabsHolder
+
+		local TabButtonUICorner = Instance.new("UICorner")
+		TabButtonUICorner.CornerRadius = UDim.new(0, 4)
+		TabButtonUICorner.Parent = TabButton
+
+		local TabButtonUIStroke = Instance.new("UIStroke")
+		TabButtonUIStroke.Color = Color3.fromRGB(84, 97, 119)
+		TabButtonUIStroke.Thickness = 1
+		TabButtonUIStroke.Parent = TabButton
+
+		local TabFrame = Instance.new("Frame")
+		TabFrame.BackgroundTransparency = 1
+		TabFrame.BorderSizePixel = 0
+		TabFrame.Size = UDim2.new(1, 0, 0, 0)
+		TabFrame.AutomaticSize = Enum.AutomaticSize.Y
+		TabFrame.ZIndex = 2
+		TabFrame.Name = TabOptions.Name .. "Content"
+		TabFrame.Visible = false
+		TabFrame.ClipsDescendants = false
+		TabFrame.Parent = ContentArea
+
+		local TabUIGridLayout = Instance.new("UIGridLayout")
+		TabUIGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+		TabUIGridLayout.CellSize = UDim2.new(0, 280, 0, 229)
+		TabUIGridLayout.Parent = TabFrame
+
+		TabButton.MouseButton1Click:Connect(function()
+			if CurrentVisibleTab and CurrentVisibleTab ~= TabOptions.Name then
+				local OldFrame = ContentArea[CurrentVisibleTab .. "Content"]
+				if OldFrame then
+					OldFrame.Visible = false
+				end
+				local OldButton = LeftSidebar:FindFirstChild(CurrentVisibleTab .. "TabButton")
+				if OldButton then
+					TweenService:Create(OldButton, TweenInformation, {TextColor3 = Color3.fromRGB(84, 97, 119)}):Play()
+					TweenService:Create(OldButton, TweenInformation, {BackgroundColor3 = Color3.fromRGB(20, 21, 25)}):Play()
 				end
 			end
 
-			TabFrame.Position = UDim2.new(0.5, 24, 0.5, 0)
+			CurrentVisibleTab = TabOptions.Name
 			TabFrame.Visible = true
-
-			TweenService:Create(TabFrame, TabTweenInfo, {
-				Position = UDim2.new(0.5, 0, 0.5, 0),
-			}):Play()
+			TweenService:Create(TabButton, TweenInformation, {TextColor3 = Color3.fromRGB(205, 180, 219)}):Play()
+			TweenService:Create(TabButton, TweenInformation, {BackgroundColor3 = Color3.fromRGB(30, 31, 38)}):Play()
 		end)
 
-		local UIGridLayout = Instance.new("UIGridLayout")
-		UIGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-		UIGridLayout.CellSize = UDim2.new(0, 306, 0, 229)
-		UIGridLayout.Parent = TabFrame
-
-		local SectionCount = 0
+		local SectionCount2 = 0
 		local Tab = {}
 
 		function Tab:AddSection(SectionOptions)
-			SectionCount += 1
+			SectionCount2 += 1
 
 			local LayoutOrder = 0
 
 			local SectionFrame = Instance.new("Frame")
 			SectionFrame.BackgroundColor3 = Color3.fromRGB(13, 14, 16)
 			SectionFrame.BorderSizePixel = 0
-			SectionFrame.Size = UDim2.new(0, 306, 0, 229)
+			SectionFrame.Size = UDim2.new(0, 280, 0, 229)
 			SectionFrame.Name = SectionOptions.Name
 			SectionFrame.Parent = TabFrame
 
@@ -451,32 +480,18 @@ function Library:CreateWindow(WindowOptions)
 
 			local SectionTopBar = Instance.new("Frame")
 			SectionTopBar.BackgroundTransparency = 1
-			SectionTopBar.Size = UDim2.new(0, 306, 0, 40)
+			SectionTopBar.Size = UDim2.new(0, 280, 0, 40)
 			SectionTopBar.ZIndex = 2
 			SectionTopBar.Name = "TopBar"
 			SectionTopBar.Parent = SectionFrame
 
-			local SectionIcon = Instance.new("ImageLabel")
-			SectionIcon.AnchorPoint = Vector2.new(0, 0.5)
-			SectionIcon.BackgroundTransparency = 1
-			SectionIcon.Position = UDim2.new(0.02, 0, 0.5, 0)
-			SectionIcon.Size = UDim2.new(0.12, 0, 0.5, 0)
-			SectionIcon.ZIndex = 2
-			SectionIcon.Image = SectionOptions.Icon
-			SectionIcon.ImageColor3 = Color3.fromRGB(84, 97, 119)
-			SectionIcon.ImageRectOffset = SectionOptions.ImageRectOffset or Vector2.new(0, 0)
-			SectionIcon.ImageRectSize = SectionOptions.ImageRectSize or Vector2.new(0, 0)
-			SectionIcon.ScaleType = Enum.ScaleType.Fit
-			SectionIcon.Name = "Icon"
-			SectionIcon.Parent = SectionTopBar
-
 			local SectionTitle = Instance.new("TextLabel")
 			SectionTitle.AnchorPoint = Vector2.new(0, 0.5)
 			SectionTitle.BackgroundTransparency = 1
-			SectionTitle.Position = UDim2.new(0.14, 0, 0.5, 0)
+			SectionTitle.Position = UDim2.new(0, 15, 0.5, 0)
 			SectionTitle.Size = UDim2.new(0.8, 0, 0.45, 0)
 			SectionTitle.ZIndex = 2
-			SectionTitle.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+			SectionTitle.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
 			SectionTitle.Text = SectionOptions.Name
 			SectionTitle.TextScaled = true
 			SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -487,7 +502,7 @@ function Library:CreateWindow(WindowOptions)
 			local OptionsHolder = Instance.new("Frame")
 			OptionsHolder.BackgroundTransparency = 1
 			OptionsHolder.Position = UDim2.new(0, 0, 0, 40)
-			OptionsHolder.Size = UDim2.new(0, 306, 0, 194)
+			OptionsHolder.Size = UDim2.new(0, 280, 0, 189)
 			OptionsHolder.ZIndex = 2
 			OptionsHolder.Name = "OptionsHolder"
 			OptionsHolder.Parent = SectionFrame
@@ -508,7 +523,7 @@ function Library:CreateWindow(WindowOptions)
 				local ToggleFrame = Instance.new("Frame")
 				ToggleFrame.AnchorPoint = Vector2.new(0.5, 0)
 				ToggleFrame.BackgroundTransparency = 1
-				ToggleFrame.Size = UDim2.new(0, 286, 0, 24)
+				ToggleFrame.Size = UDim2.new(0, 260, 0, 24)
 				ToggleFrame.ZIndex = 2
 				ToggleFrame.Name = ToggleOptions.Name
 				ToggleFrame.Parent = OptionsHolder
@@ -518,9 +533,9 @@ function Library:CreateWindow(WindowOptions)
 				ToggleName.AnchorPoint = Vector2.new(0, 0.5)
 				ToggleName.BackgroundTransparency = 1
 				ToggleName.Position = UDim2.new(0, 0, 0.5, 0)
-				ToggleName.Size = UDim2.new(0, 286, 0, 18)
+				ToggleName.Size = UDim2.new(0, 260, 0, 18)
 				ToggleName.ZIndex = 2
-				ToggleName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				ToggleName.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				ToggleName.Text = ToggleOptions.Name
 				ToggleName.TextColor3 = Color3.fromRGB(84, 97, 119)
 				ToggleName.TextScaled = true
@@ -595,7 +610,7 @@ function Library:CreateWindow(WindowOptions)
 				local SliderFrame = Instance.new("Frame")
 				SliderFrame.AnchorPoint = Vector2.new(0.5, 0)
 				SliderFrame.BackgroundTransparency = 1
-				SliderFrame.Size = UDim2.new(0, 286, 0, 42)
+				SliderFrame.Size = UDim2.new(0, 260, 0, 42)
 				SliderFrame.ZIndex = 2
 				SliderFrame.Name = SliderOptions.Name
 				SliderFrame.Parent = OptionsHolder
@@ -616,9 +631,9 @@ function Library:CreateWindow(WindowOptions)
 				local SliderName = Instance.new("TextLabel")
 				SliderName.BackgroundTransparency = 1
 				SliderName.Position = UDim2.new(0, 0, 0, 3)
-				SliderName.Size = UDim2.new(0, 286, 0, 18)
+				SliderName.Size = UDim2.new(0, 260, 0, 18)
 				SliderName.ZIndex = 3
-				SliderName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				SliderName.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				SliderName.Text = SliderOptions.Name
 				SliderName.TextXAlignment = Enum.TextXAlignment.Left
 				SliderName.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -649,9 +664,9 @@ function Library:CreateWindow(WindowOptions)
 				local SliderValue = Instance.new("TextBox")
 				SliderValue.BackgroundTransparency = 1
 				SliderValue.Position = UDim2.new(0, 0, 0, 3)
-				SliderValue.Size = UDim2.new(0, 286, 0, 18)
+				SliderValue.Size = UDim2.new(0, 260, 0, 18)
 				SliderValue.ZIndex = 3
-				SliderValue.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				SliderValue.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				SliderValue.Text = tostring(SliderOptions.Default)
 				SliderValue.TextColor3 = Color3.fromRGB(84, 97, 119)
 				SliderValue.TextScaled = true
@@ -752,7 +767,7 @@ function Library:CreateWindow(WindowOptions)
 				local DropdownFrame = Instance.new("Frame")
 				DropdownFrame.AnchorPoint = Vector2.new(0.5, 0)
 				DropdownFrame.BackgroundTransparency = 1
-				DropdownFrame.Size = UDim2.new(0, 286, 0, 24)
+				DropdownFrame.Size = UDim2.new(0, 260, 0, 24)
 				DropdownFrame.ZIndex = 2
 				DropdownFrame.Name = DropdownOptions.Name
 				DropdownFrame.Parent = OptionsHolder
@@ -762,9 +777,9 @@ function Library:CreateWindow(WindowOptions)
 				DropdownName.AnchorPoint = Vector2.new(0, 0.5)
 				DropdownName.BackgroundTransparency = 1
 				DropdownName.Position = UDim2.new(0, 0, 0.5, 0)
-				DropdownName.Size = UDim2.new(0, 286, 0, 18)
+				DropdownName.Size = UDim2.new(0, 260, 0, 18)
 				DropdownName.ZIndex = 2
-				DropdownName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				DropdownName.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				DropdownName.Text = DropdownOptions.Name
 				DropdownName.TextColor3 = Color3.fromRGB(255, 255, 255)
 				DropdownName.TextScaled = true
@@ -814,7 +829,7 @@ function Library:CreateWindow(WindowOptions)
 					DropdownOptionButton.BackgroundTransparency = 1
 					DropdownOptionButton.Size = UDim2.new(1, 0, 0, 18)
 					DropdownOptionButton.ZIndex = 5
-					DropdownOptionButton.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+					DropdownOptionButton.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 					DropdownOptionButton.Text = DropdownOptionName
 					DropdownOptionButton.TextColor3 = Color3.fromRGB(84, 97, 119)
 					DropdownOptionButton.TextScaled = true
@@ -868,7 +883,7 @@ function Library:CreateWindow(WindowOptions)
 				local KeybindFrame = Instance.new("Frame")
 				KeybindFrame.AnchorPoint = Vector2.new(0.5, 0)
 				KeybindFrame.BackgroundTransparency = 1
-				KeybindFrame.Size = UDim2.new(0, 286, 0, 24)
+				KeybindFrame.Size = UDim2.new(0, 260, 0, 24)
 				KeybindFrame.ZIndex = 2
 				KeybindFrame.Name = KeybindOptions.Name
 				KeybindFrame.Parent = OptionsHolder
@@ -878,9 +893,9 @@ function Library:CreateWindow(WindowOptions)
 				KeybindName.AnchorPoint = Vector2.new(0, 0.5)
 				KeybindName.BackgroundTransparency = 1
 				KeybindName.Position = UDim2.new(0, 0, 0.5, 0)
-				KeybindName.Size = UDim2.new(0, 286, 0, 18)
+				KeybindName.Size = UDim2.new(0, 260, 0, 18)
 				KeybindName.ZIndex = 2
-				KeybindName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				KeybindName.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				KeybindName.Text = KeybindOptions.Name
 				KeybindName.TextColor3 = Color3.fromRGB(255, 255, 255)
 				KeybindName.TextScaled = true
@@ -905,7 +920,7 @@ function Library:CreateWindow(WindowOptions)
 				KeybindSelectorButton.BackgroundTransparency = 1
 				KeybindSelectorButton.Size = UDim2.new(1, 0, 1, 0)
 				KeybindSelectorButton.ZIndex = 2
-				KeybindSelectorButton.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				KeybindSelectorButton.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				KeybindSelectorButton.Text = KeybindOptions.Default.Name
 				KeybindSelectorButton.TextColor3 = Color3.fromRGB(84, 97, 119)
 				KeybindSelectorButton.TextScaled = true
@@ -942,85 +957,13 @@ function Library:CreateWindow(WindowOptions)
 				end
 			end
 
-			function Section:AddTextBox(TextBoxOptions)
-				LayoutOrder += 1
-
-				local TextBoxFrame = Instance.new("Frame")
-				TextBoxFrame.AnchorPoint = Vector2.new(0.5, 0)
-				TextBoxFrame.BackgroundTransparency = 1
-				TextBoxFrame.Size = UDim2.new(0, 286, 0, 24)
-				TextBoxFrame.ZIndex = 2
-				TextBoxFrame.Name = TextBoxOptions.Name
-				TextBoxFrame.Parent = OptionsHolder
-				TextBoxFrame.LayoutOrder = LayoutOrder
-
-				local TextBoxName = Instance.new("TextLabel")
-				TextBoxName.AnchorPoint = Vector2.new(0, 0.5)
-				TextBoxName.BackgroundTransparency = 1
-				TextBoxName.Position = UDim2.new(0, 0, 0.5, 0)
-				TextBoxName.Size = UDim2.new(0, 286, 0, 18)
-				TextBoxName.ZIndex = 2
-				TextBoxName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-				TextBoxName.Text = TextBoxOptions.Name
-				TextBoxName.TextColor3 = Color3.fromRGB(255, 255, 255)
-				TextBoxName.TextScaled = true
-				TextBoxName.TextWrapped = true
-				TextBoxName.TextXAlignment = Enum.TextXAlignment.Left
-				TextBoxName.Name = "TextBoxName"
-				TextBoxName.Parent = TextBoxFrame
-
-				local TextBoxBackground = Instance.new("Frame")
-				TextBoxBackground.AnchorPoint = Vector2.new(0, 0.5)
-				TextBoxBackground.BackgroundColor3 = Color3.fromRGB(27, 30, 37)
-				TextBoxBackground.Position = UDim2.new(1, -128, 0.5, 0)
-				TextBoxBackground.Size = UDim2.new(0, 128, 0, 18)
-				TextBoxBackground.ZIndex = 2
-				TextBoxBackground.Name = "Background"
-				TextBoxBackground.Parent = TextBoxFrame
-
-				local TextBoxUICorner = Instance.new("UICorner")
-				TextBoxUICorner.CornerRadius = UDim.new(0, 4)
-				TextBoxUICorner.Parent = TextBoxBackground
-
-				local TextInput = Instance.new("TextBox")
-				TextInput.BackgroundTransparency = 1
-				TextInput.ClearTextOnFocus = false
-				TextInput.MultiLine = false
-				TextInput.Position = UDim2.new(0, 5, 0, 0)
-				TextInput.Size = UDim2.new(1, -5, 1, 0)
-				TextInput.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-				TextInput.PlaceholderColor3 = Color3.fromRGB(84, 97, 119)
-				TextInput.PlaceholderText = TextBoxOptions.Placeholder or "..."
-				TextInput.Text = TextBoxOptions.Default or ""
-				TextInput.TextColor3 = Color3.fromRGB(84, 97, 119)
-				TextInput.TextXAlignment = Enum.TextXAlignment.Left
-				TextInput.TextSize = 14
-				TextInput.TextWrapped = true
-				TextInput.ZIndex = 3
-				TextInput.Name = "TextInput"
-				TextInput.Parent = TextBoxBackground
-
-				local function SetTextBox(Value)
-					TextInput.Text = tostring(Value)
-					TextBoxOptions.Callback(TextInput.Text)
-				end
-
-				TextInput.FocusLost:Connect(function()
-					TextBoxOptions.Callback(TextInput.Text)
-				end)
-
-				if TextBoxOptions.Flag then
-					Library:RegisterConfigFlag(TextBoxOptions.Flag, "textbox", TextBoxOptions.Default or "", SetTextBox, function() return TextInput.Text end)
-				end
-			end
-
 			function Section:AddButton(ButtonOptions)
 				LayoutOrder += 1
 
 				local ButtonFrame = Instance.new("Frame")
 				ButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
 				ButtonFrame.BackgroundTransparency = 1
-				ButtonFrame.Size = UDim2.new(0, 286, 0, 24)
+				ButtonFrame.Size = UDim2.new(0, 260, 0, 24)
 				ButtonFrame.ZIndex = 2
 				ButtonFrame.Name = ButtonOptions.Name
 				ButtonFrame.Parent = OptionsHolder
@@ -1030,9 +973,9 @@ function Library:CreateWindow(WindowOptions)
 				ButtonName.AnchorPoint = Vector2.new(0, 0.5)
 				ButtonName.BackgroundTransparency = 1
 				ButtonName.Position = UDim2.new(0, 0, 0.5, 0)
-				ButtonName.Size = UDim2.new(0, 286, 0, 18)
+				ButtonName.Size = UDim2.new(0, 260, 0, 18)
 				ButtonName.ZIndex = 2
-				ButtonName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				ButtonName.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				ButtonName.Text = ButtonOptions.Name
 				ButtonName.TextColor3 = Color3.fromRGB(255, 255, 255)
 				ButtonName.TextScaled = true
@@ -1057,7 +1000,7 @@ function Library:CreateWindow(WindowOptions)
 				Button.BackgroundTransparency = 1
 				Button.Size = UDim2.new(1, 0, 1, 0)
 				Button.ZIndex = 3
-				Button.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				Button.FontFace = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 				Button.Text = ButtonOptions.ButtonText or "Button"
 				Button.TextColor3 = Color3.fromRGB(84, 97, 119)
 				Button.TextScaled = true
@@ -1069,449 +1012,14 @@ function Library:CreateWindow(WindowOptions)
 				end)
 			end
 
-			function Section:AddColorPicker(ColorPickerOptions)
-				LayoutOrder += 1
-
-				local CurrentColor = ColorPickerOptions.Default or Color3.fromRGB(205, 180, 219)
-				local H, S, V = Color3.toHSV(CurrentColor)
-
-				local ColorPickerFrame = Instance.new("Frame")
-				ColorPickerFrame.AnchorPoint = Vector2.new(0.5, 0)
-				ColorPickerFrame.BackgroundTransparency = 1
-				ColorPickerFrame.Size = UDim2.new(0, 286, 0, 24)
-				ColorPickerFrame.ZIndex = 2
-				ColorPickerFrame.Name = ColorPickerOptions.Name
-				ColorPickerFrame.Parent = OptionsHolder
-				ColorPickerFrame.LayoutOrder = LayoutOrder
-
-				local ColorPickerName = Instance.new("TextLabel")
-				ColorPickerName.AnchorPoint = Vector2.new(0, 0.5)
-				ColorPickerName.BackgroundTransparency = 1
-				ColorPickerName.Position = UDim2.new(0, 0, 0.5, 0)
-				ColorPickerName.Size = UDim2.new(0, 286, 0, 18)
-				ColorPickerName.ZIndex = 2
-				ColorPickerName.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-				ColorPickerName.Text = ColorPickerOptions.Name
-				ColorPickerName.TextColor3 = Color3.fromRGB(255, 255, 255)
-				ColorPickerName.TextScaled = true
-				ColorPickerName.TextXAlignment = Enum.TextXAlignment.Left
-				ColorPickerName.Name = "ColorPickerName"
-				ColorPickerName.Parent = ColorPickerFrame
-
-				local ColorPreview = Instance.new("Frame")
-				ColorPreview.AnchorPoint = Vector2.new(0, 0.5)
-				ColorPreview.BackgroundColor3 = CurrentColor
-				ColorPreview.Position = UDim2.new(1, -24, 0.5, 0)
-				ColorPreview.Size = UDim2.new(0, 24, 0, 18)
-				ColorPreview.ZIndex = 2
-				ColorPreview.Name = "ColorPreview"
-				ColorPreview.Parent = ColorPickerFrame
-
-				local ColorPreviewUICorner = Instance.new("UICorner")
-				ColorPreviewUICorner.CornerRadius = UDim.new(0, 4)
-				ColorPreviewUICorner.Parent = ColorPreview
-
-				local ColorPreviewUIStroke = Instance.new("UIStroke")
-				ColorPreviewUIStroke.Color = Color3.fromRGB(19, 21, 21)
-				ColorPreviewUIStroke.Thickness = 1.5
-				ColorPreviewUIStroke.Parent = ColorPreview
-
-				local ColorPreviewButton = Instance.new("TextButton")
-				ColorPreviewButton.BackgroundTransparency = 1
-				ColorPreviewButton.Size = UDim2.new(1, 0, 1, 0)
-				ColorPreviewButton.ZIndex = 3
-				ColorPreviewButton.Text = ""
-				ColorPreviewButton.Name = "Button"
-				ColorPreviewButton.Parent = ColorPreview
-
-				local ColorPickerPopup = Instance.new("Frame")
-				ColorPickerPopup.BackgroundColor3 = Color3.fromRGB(13, 14, 16)
-				ColorPickerPopup.BorderSizePixel = 0
-				ColorPickerPopup.Size = UDim2.new(0, 210, 0, 175)
-				ColorPickerPopup.ZIndex = 1500
-				ColorPickerPopup.Visible = false
-				ColorPickerPopup.Name = "ColorPickerPopup"
-				ColorPickerPopup.Parent = ScreenGui
-
-				local PopupUICorner = Instance.new("UICorner")
-				PopupUICorner.CornerRadius = UDim.new(0, 10)
-				PopupUICorner.Parent = ColorPickerPopup
-
-				local PopupUIStroke = Instance.new("UIStroke")
-				PopupUIStroke.Color = Color3.fromRGB(19, 21, 21)
-				PopupUIStroke.Thickness = 1.5
-				PopupUIStroke.Parent = ColorPickerPopup
-
-				local SVFrame = Instance.new("Frame")
-				SVFrame.BackgroundColor3 = Color3.fromHSV(H, 1, 1)
-				SVFrame.Position = UDim2.new(0, 10, 0, 10)
-				SVFrame.Size = UDim2.new(0, 120, 0, 120)
-				SVFrame.ZIndex = 1501
-				SVFrame.Name = "SVFrame"
-				SVFrame.Parent = ColorPickerPopup
-
-				local SVFrameUICorner = Instance.new("UICorner")
-				SVFrameUICorner.CornerRadius = UDim.new(0, 6)
-				SVFrameUICorner.Parent = SVFrame
-
-				local SaturationGradient = Instance.new("UIGradient")
-				SaturationGradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
-				})
-				SaturationGradient.Transparency = NumberSequence.new({
-					NumberSequenceKeypoint.new(0, 0),
-					NumberSequenceKeypoint.new(1, 1)
-				})
-				SaturationGradient.Parent = SVFrame
-
-				local ValueOverlay = Instance.new("Frame")
-				ValueOverlay.BackgroundTransparency = 1
-				ValueOverlay.Size = UDim2.new(1, 0, 1, 0)
-				ValueOverlay.ZIndex = 1502
-				ValueOverlay.Name = "ValueOverlay"
-				ValueOverlay.Parent = SVFrame
-
-				local ValueGradient = Instance.new("UIGradient")
-				ValueGradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
-				})
-				ValueGradient.Transparency = NumberSequence.new({
-					NumberSequenceKeypoint.new(0, 1),
-					NumberSequenceKeypoint.new(1, 0)
-				})
-				ValueGradient.Rotation = 90
-				ValueGradient.Parent = ValueOverlay
-
-				local SVSelector = Instance.new("Frame")
-				SVSelector.AnchorPoint = Vector2.new(0.5, 0.5)
-				SVSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				SVSelector.BorderSizePixel = 0
-				SVSelector.Position = UDim2.new(S, 0, 1 - V, 0)
-				SVSelector.Size = UDim2.new(0, 6, 0, 6)
-				SVSelector.ZIndex = 1503
-				SVSelector.Name = "SVSelector"
-				SVSelector.Parent = SVFrame
-
-				local SVSelectorUICorner = Instance.new("UICorner")
-				SVSelectorUICorner.CornerRadius = UDim.new(1, 0)
-				SVSelectorUICorner.Parent = SVSelector
-
-				local SVSelectorUIStroke = Instance.new("UIStroke")
-				SVSelectorUIStroke.Color = Color3.fromRGB(0, 0, 0)
-				SVSelectorUIStroke.Thickness = 1
-				SVSelectorUIStroke.Parent = SVSelector
-
-				local HueFrame = Instance.new("Frame")
-				HueFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				HueFrame.Position = UDim2.new(0, 140, 0, 10)
-				HueFrame.Size = UDim2.new(0, 20, 0, 120)
-				HueFrame.ZIndex = 1501
-				HueFrame.Name = "HueFrame"
-				HueFrame.Parent = ColorPickerPopup
-
-				local HueFrameUICorner = Instance.new("UICorner")
-				HueFrameUICorner.CornerRadius = UDim.new(0, 6)
-				HueFrameUICorner.Parent = HueFrame
-
-				local HueGradient = Instance.new("UIGradient")
-				HueGradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-					ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-					ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-					ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-					ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
-					ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-				})
-				HueGradient.Rotation = 90
-				HueGradient.Parent = HueFrame
-
-				local HueSelector = Instance.new("Frame")
-				HueSelector.AnchorPoint = Vector2.new(0.5, 0.5)
-				HueSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				HueSelector.BorderSizePixel = 0
-				HueSelector.Position = UDim2.new(0.5, 0, 1 - H, 0)
-				HueSelector.Size = UDim2.new(1, 4, 0, 4)
-				HueSelector.ZIndex = 1503
-				HueSelector.Name = "HueSelector"
-				HueSelector.Parent = HueFrame
-
-				local HueSelectorUICorner = Instance.new("UICorner")
-				HueSelectorUICorner.CornerRadius = UDim.new(1, 0)
-				HueSelectorUICorner.Parent = HueSelector
-
-				local HueSelectorUIStroke = Instance.new("UIStroke")
-				HueSelectorUIStroke.Color = Color3.fromRGB(0, 0, 0)
-				HueSelectorUIStroke.Thickness = 1
-				HueSelectorUIStroke.Parent = HueSelector
-
-				local InputFrame = Instance.new("Frame")
-				InputFrame.BackgroundTransparency = 1
-				InputFrame.Position = UDim2.new(0, 10, 0, 140)
-				InputFrame.Size = UDim2.new(0, 190, 0, 25)
-				InputFrame.ZIndex = 1501
-				InputFrame.Name = "InputFrame"
-				InputFrame.Parent = ColorPickerPopup
-
-				local InputUIListLayout = Instance.new("UIListLayout")
-				InputUIListLayout.FillDirection = Enum.FillDirection.Horizontal
-				InputUIListLayout.Padding = UDim.new(0, 6)
-				InputUIListLayout.Parent = InputFrame
-
-				local function CreateInputBox(Placeholder, Value)
-					local Box = Instance.new("TextBox")
-					Box.BackgroundColor3 = Color3.fromRGB(27, 30, 37)
-					Box.Size = UDim2.new(0, 40, 1, 0)
-					Box.ZIndex = 1502
-					Box.FontFace = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-					Box.Text = tostring(Value)
-					Box.PlaceholderText = Placeholder
-					Box.PlaceholderColor3 = Color3.fromRGB(84, 97, 119)
-					Box.TextColor3 = Color3.fromRGB(255, 255, 255)
-					Box.TextScaled = true
-					Box.TextSize = 12
-					Box.ClearTextOnFocus = false
-					Box.Parent = InputFrame
-
-					local BoxUICorner = Instance.new("UICorner")
-					BoxUICorner.CornerRadius = UDim.new(0, 4)
-					BoxUICorner.Parent = Box
-
-					return Box
-				end
-
-				local RBox = CreateInputBox("R", math.floor(CurrentColor.R * 255))
-				local GBox = CreateInputBox("G", math.floor(CurrentColor.G * 255))
-				local BBox = CreateInputBox("B", math.floor(CurrentColor.B * 255))
-				local HexBox = CreateInputBox("Hex", Color3ToHex(CurrentColor))
-				HexBox.Size = UDim2.new(0, 60, 1, 0)
-
-				local IsOpen = false
-				local IsDraggingSV = false
-				local IsDraggingHue = false
-
-				local function UpdateColor(NewH, NewS, NewV, SkipInputs)
-					H, S, V = NewH, NewS, NewV
-					CurrentColor = Color3.fromHSV(H, S, V)
-					ColorPreview.BackgroundColor3 = CurrentColor
-					SVFrame.BackgroundColor3 = Color3.fromHSV(H, 1, 1)
-
-					SVSelector.Position = UDim2.new(S, 0, 1 - V, 0)
-					HueSelector.Position = UDim2.new(0.5, 0, 1 - H, 0)
-
-					if not SkipInputs then
-						RBox.Text = tostring(math.floor(CurrentColor.R * 255))
-						GBox.Text = tostring(math.floor(CurrentColor.G * 255))
-						BBox.Text = tostring(math.floor(CurrentColor.B * 255))
-						HexBox.Text = Color3ToHex(CurrentColor)
-					end
-
-					ColorPickerOptions.Callback(CurrentColor)
-				end
-
-				local function OpenPopup()
-					IsOpen = true
-					local PreviewPos = ColorPreview.AbsolutePosition
-					ColorPickerPopup.Position = UDim2.new(0, PreviewPos.X - 186, 0, PreviewPos.Y - 10)
-					ColorPickerPopup.Visible = true
-					TweenService:Create(ColorPickerPopup, TweenInformation, {Size = UDim2.new(0, 210, 0, 175)}):Play()
-				end
-
-				local function ClosePopup()
-					IsOpen = false
-					ColorPickerPopup.Visible = false
-				end
-
-				ColorPreviewButton.MouseButton1Click:Connect(function()
-					if IsOpen then
-						ClosePopup()
-					else
-						OpenPopup()
-					end
-				end)
-
-				local function UpdateSVFromInput(InputPosition)
-					local RelativeX = InputPosition.X - SVFrame.AbsolutePosition.X
-					local RelativeY = InputPosition.Y - SVFrame.AbsolutePosition.Y
-					local NewS = Clamp(RelativeX / SVFrame.AbsoluteSize.X, 0, 1)
-					local NewV = 1 - Clamp(RelativeY / SVFrame.AbsoluteSize.Y, 0, 1)
-					UpdateColor(H, NewS, NewV)
-				end
-
-				local function UpdateHueFromInput(InputPosition)
-					local RelativeY = InputPosition.Y - HueFrame.AbsolutePosition.Y
-					local NewH = 1 - Clamp(RelativeY / HueFrame.AbsoluteSize.Y, 0, 1)
-					UpdateColor(NewH, S, V)
-				end
-
-				SVFrame.InputBegan:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						IsDraggingSV = true
-						UpdateSVFromInput(Input.Position)
-					end
-				end)
-
-				HueFrame.InputBegan:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						IsDraggingHue = true
-						UpdateHueFromInput(Input.Position)
-					end
-				end)
-
-				UserInputService.InputChanged:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
-						if IsDraggingSV then
-							UpdateSVFromInput(Input.Position)
-						elseif IsDraggingHue then
-							UpdateHueFromInput(Input.Position)
-						end
-					end
-				end)
-
-				UserInputService.InputEnded:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						IsDraggingSV = false
-						IsDraggingHue = false
-					end
-				end)
-
-				local function ApplyRGBInputs()
-					local R = tonumber(RBox.Text)
-					local G = tonumber(GBox.Text)
-					local B = tonumber(BBox.Text)
-					if R and G and B then
-						R = Clamp(math.floor(R), 0, 255)
-						G = Clamp(math.floor(G), 0, 255)
-						B = Clamp(math.floor(B), 0, 255)
-						local NewH, NewS, NewV = Color3.toHSV(Color3.fromRGB(R, G, B))
-						UpdateColor(NewH, NewS, NewV, true)
-					end
-				end
-
-				RBox.FocusLost:Connect(ApplyRGBInputs)
-				GBox.FocusLost:Connect(ApplyRGBInputs)
-				BBox.FocusLost:Connect(ApplyRGBInputs)
-
-				HexBox.FocusLost:Connect(function()
-					local NewColor = HexToColor3(HexBox.Text)
-					if NewColor then
-						local NewH, NewS, NewV = Color3.toHSV(NewColor)
-						UpdateColor(NewH, NewS, NewV, true)
-					else
-						HexBox.Text = Color3ToHex(CurrentColor)
-					end
-				end)
-
-				UserInputService.InputBegan:Connect(function(Input, GameProcessed)
-					if GameProcessed then return end
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 and IsOpen then
-						local MousePos = UserInputService:GetMouseLocation()
-						local PopupPos = ColorPickerPopup.AbsolutePosition
-						local PopupSize = ColorPickerPopup.AbsoluteSize
-						local InPopup = MousePos.X >= PopupPos.X and MousePos.X <= PopupPos.X + PopupSize.X and MousePos.Y >= PopupPos.Y and MousePos.Y <= PopupPos.Y + PopupSize.Y
-						local PreviewPos = ColorPreview.AbsolutePosition
-						local PreviewSize = ColorPreview.AbsoluteSize
-						local InPreview = MousePos.X >= PreviewPos.X and MousePos.X <= PreviewPos.X + PreviewSize.X and MousePos.Y >= PreviewPos.Y and MousePos.Y <= PreviewPos.Y + PreviewSize.Y
-						if not InPopup and not InPreview then
-							ClosePopup()
-						end
-					end
-				end)
-
-				local function SetColorPicker(Value)
-					if typeof(Value) == "table" and Value.R ~= nil and Value.G ~= nil and Value.B ~= nil then
-						Value = Color3.fromRGB(math.floor(Value.R * 255 + 0.5), math.floor(Value.G * 255 + 0.5), math.floor(Value.B * 255 + 0.5))
-					end
-					if typeof(Value) ~= "Color3" then return end
-					local NewH, NewS, NewV = Color3.toHSV(Value)
-					UpdateColor(NewH, NewS, NewV)
-				end
-
-				if ColorPickerOptions.Flag then
-					Library:RegisterConfigFlag(ColorPickerOptions.Flag, "colorpicker", CurrentColor, SetColorPicker, function() return {R = CurrentColor.R, G = CurrentColor.G, B = CurrentColor.B} end)
-				end
-			end
-
 			return Section
 		end
 
+		if #Library.Sections[SectionName].Tabs == 1 then
+			TabButton.MouseButton1Click:Fire()
+		end
+
 		return Tab
-	end
-
-	function Window:SaveConfig(FileName)
-		if not FileName then return false end
-		local Success = pcall(function()
-			if not isfolder(Library.ConfigFolder) then
-				makefolder(Library.ConfigFolder)
-			end
-			local Path = Library.ConfigFolder .. "/" .. FileName .. ".json"
-			local Data = Library:GetConfigDump()
-			writefile(Path, HttpService:JSONEncode(Data))
-		end)
-		return Success
-	end
-
-	function Window:LoadConfig(FileName)
-		if not FileName then return false end
-		local Path = Library.ConfigFolder .. "/" .. FileName .. ".json"
-		local Success, Data = pcall(function()
-			if not isfile(Path) then return nil end
-			return HttpService:JSONDecode(readfile(Path))
-		end)
-		if Success and type(Data) == "table" then
-			for Flag, Value in Data do
-				Library:SetConfigValue(Flag, Value)
-			end
-			return true
-		end
-		return false
-	end
-
-	function Window:DeleteConfig(FileName)
-		if not FileName then return false end
-		local Path = Library.ConfigFolder .. "/" .. FileName .. ".json"
-		local Success = pcall(function()
-			if isfile(Path) then
-				delfile(Path)
-			end
-		end)
-		return Success
-	end
-
-	function Window:ListConfigs()
-		local Configs = {}
-		local Success, Files = pcall(function()
-			if not isfolder(Library.ConfigFolder) then return {} end
-			return listfiles(Library.ConfigFolder)
-		end)
-		if Success and type(Files) == "table" then
-			for _, FilePath in Files do
-				local Name = FilePath:match("([^/\\]+)%.json$")
-				if Name then
-					table.insert(Configs, Name)
-				end
-			end
-		end
-		return Configs
-	end
-
-	function Window:AutoSaveConfig(FileName, Enabled)
-		if Enabled == nil then Enabled = true end
-		if Window.AutoSaveConnection then
-			Window.AutoSaveConnection:Disconnect()
-			Window.AutoSaveConnection = nil
-		end
-		if Enabled and FileName then
-			Window.AutoSaveFileName = FileName
-			Window.AutoSaveConnection = RunService.Heartbeat:Connect(function()
-				if not Window.LastAutoSave or tick() - Window.LastAutoSave >= 5 then
-					Window.LastAutoSave = tick()
-					Window:SaveConfig(Window.AutoSaveFileName)
-				end
-			end)
-		end
 	end
 
 	return Window
