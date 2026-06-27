@@ -3904,7 +3904,7 @@ local Library do
                 SettingsSection:Label("Menu Keybind"):Keybind({
                     Name = "Menu Keybind",
                     Flag = "MenuKeybind",
-                    Default = Library.MenuKeybind,
+                    Default = Enum.KeyCode.RightShift,
                     Mode = "Toggle",
                     Callback = function()
                         Library.MenuKeybind = Library.Flags["MenuKeybind"].Key
