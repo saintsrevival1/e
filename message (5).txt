@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 
 -- // Variables
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer.PlayerGui
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui") -- Added WaitForChild to prevent loading errors
 
 local TweenInformation = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0)
 local TabTweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, 0, false, 0)
@@ -77,7 +77,6 @@ function Library:CreateWindow(WindowOptions)
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = string.gsub(WindowOptions.Title, " ", "") .. "UI"
 	ScreenGui.ResetOnSpawn = false
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 	ScreenGui.Parent = PlayerGui
 
@@ -391,7 +390,7 @@ function Library:CreateWindow(WindowOptions)
 			CurrentVisibleTab = TabOptions.Name
 
 			TweenService:Create(LeftBar[CurrentVisibleTab .. "Button"], TweenInformation, {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-			Path.Text = "Fusion Pro"
+			Path.Text = WindowOptions.Title
 
 			for _, TabName in Library.Tabs do
 				if TabName == CurrentVisibleTab then
@@ -990,4 +989,3 @@ function Library:CreateWindow(WindowOptions)
 	return Window
 end
 
-return Library
