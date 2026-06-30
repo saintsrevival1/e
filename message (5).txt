@@ -1880,6 +1880,26 @@ local Library do
                     Name = "\0",
                     CornerRadius = UDimNew(0, 7)
                 })
+
+                -- Mobile sizing: the full 798x599 window is too big to even drag on phones,
+                -- so on touch devices we scale the whole UI down to fit the screen (clamped
+                -- so it never gets too tiny). Desktop stays at full size.
+                do
+                    local IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+                    local Scale = 1
+                    if IsMobile then
+                        local Camera = Workspace.CurrentCamera
+                        local Viewport = (Camera and Camera.ViewportSize) or Vector2New(1280, 720)
+                        local FitX = (Viewport.X * 0.82) / 798
+                        local FitY = (Viewport.Y * 0.82) / 599
+                        Scale = math.clamp(math.min(FitX, FitY), 0.55, 0.8)
+                    end
+                    Instances:Create("UIScale", {
+                        Parent = Items["MainFrame"].Instance,
+                        Name = "\0",
+                        Scale = Scale
+                    })
+                end
                 
                 Items["Side"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
@@ -2040,76 +2060,6 @@ Instances:Create("UIPadding", {
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }):AddToTheme({Color = "Border"})          
                 
-                Items["Bottom_"] = Instances:Create("Frame", {
-                    Parent = Items["Side"].Instance,
-                    Name = "\0",
-                    AnchorPoint = Vector2New(0, 1),
-                    Position = UDim2New(0, 6, 1, -6),
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2New(1, -12, 0, 45),
-                    BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(21, 24, 24)
-                })  Items["Bottom_"]:AddToTheme({BackgroundColor3 = "Inline"})
-                
-                Instances:Create("UICorner", {
-                    Parent = Items["Bottom_"].Instance,
-                    Name = "\0",
-                    CornerRadius = UDimNew(0, 7)
-                })
-                
-                Instances:Create("UIStroke", {
-                    Parent = Items["Bottom_"].Instance,
-                    Name = "\0",
-                    Color = FromRGB(30, 33, 33),
-                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                }):AddToTheme({Color = "Border"})
-                
-                Items["SubExpires"] = Instances:Create("TextLabel", {
-                    Parent = Items["Bottom_"].Instance,
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextColor3 = FromRGB(255, 255, 255),
-                    TextTransparency = 0.5,
-                    Text = "Sub expires in "..Window.ExpiresIn,
-                    Size = UDim2New(0, 0, 0, 15),
-                    BorderSizePixel = 0,
-                    BackgroundTransparency = 1,
-                    Position = UDim2New(0, 10, 0, 8),
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    TextSize = 12,
-                    BackgroundColor3 = FromRGB(255, 255, 255)
-                })
-                
-                Items["SessionDuration"] = Instances:Create("TextLabel", {
-                    Parent = Items["Bottom_"].Instance,
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextColor3 = FromRGB(255, 255, 255),
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Text = "Session duration: ",
-                    Size = UDim2New(0, 0, 0, 15),
-                    BackgroundTransparency = 1,
-                    Position = UDim2New(0, 10, 0, 23),
-                    BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    TextSize = 12,
-                    BackgroundColor3 = FromRGB(255, 255, 255)
-                })                
-
-                Library:Thread(function()
-                    while task.wait(1) do
-                        local SecondsPassed = MathFloor(tick() - StartTime)
-                        local MinutesPassed = MathFloor(SecondsPassed / 60)
-
-                        if MinutesPassed > 0 then
-                            SecondsPassed = SecondsPassed - MinutesPassed * 60
-                        end
-
-                        Items["SessionDuration"].Instance.Text = "Session duration: "..MinutesPassed..":"..SecondsPassed
-                    end
-                end)
-
                 Window.Items = Items
             end
             
