@@ -2015,8 +2015,13 @@ Items["Pages"] = Instances:Create("ScrollingFrame", {
     BorderColor3 = FromRGB(0, 0, 0),
     Size = UDim2New(1, 0, 1, -80),
     BorderSizePixel = 0,
-    ScrollBarThickness = 2,
+    ClipsDescendants = true,
+    ScrollingEnabled = true,
+    ScrollBarThickness = 4,
     ScrollBarImageColor3 = FromRGB(100, 100, 100),
+    ScrollBarImageTransparency = 0.2,
+    VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar,
+    ElasticBehavior = Enum.ElasticBehavior.Never,
     ScrollingDirection = Enum.ScrollingDirection.Y,
     CanvasSize = UDim2New(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
@@ -2026,7 +2031,7 @@ Items["Pages"] = Instances:Create("ScrollingFrame", {
 Instances:Create("UIListLayout", {
     Parent = Items["Pages"].Instance,
     Name = "\0",
-    Padding = UDimNew(0, 8),
+    Padding = UDimNew(0, 5),
     SortOrder = Enum.SortOrder.LayoutOrder,
     FillDirection = Enum.FillDirection.Vertical
 })
@@ -2034,7 +2039,9 @@ Instances:Create("UIListLayout", {
 Instances:Create("UIPadding", {
     Parent = Items["Pages"].Instance,
     Name = "\0",
-    PaddingLeft = UDimNew(0, 8)
+    PaddingLeft = UDimNew(0, 8),
+    PaddingTop = UDimNew(0, 2),
+    PaddingBottom = UDimNew(0, 6)
 })
 
                 Items["Content"] = Instances:Create("Frame", {
